@@ -1,0 +1,105 @@
+version: "3.7"
+
+services: 
+  elasticsearch:
+    image: elastic/elasticsearch:6.4.3
+    environment:
+      - "cluster.name=atk-es-cluster"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "xpack.security.enabled=false"
+      - "es.enforce.bootstrap.checks"
+      - "http.host=0.0.0.0"
+      - "network.host=_eth0:ipv4_"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+      - "discovery.zen.minimum_master_nodes=2"
+      - "xpack.monitoring.collection.enabled=true"
+    networks:
+      - elasticsearch
+    deploy:
+      endpoint_mode: dnsrr
+      mode: global
+      placement:
+        constraints: [node.role == worker]
+
+  kibana:
+    image: elastic/kibana:6.4.3
+    ports:
+      - "5601:5601"
+    networks:
+      - elasticsearch
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+  metricbeat-host:
+    image: elastic/metricbeat:6.4.3
+    command: metricbeat -e -c /metricbeat/metricbeat-host.yml -system.hostfs=/hostfs
+    user:
+      root
+    environment:
+      - ELASTICSEARCH_URL=elasticsearch:9200
+    volumes:
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    configs:
+      - source: metricbeat.yml
+        target: /metricbeat/metricbeat-host.yml
+    networks:
+      - elasticsearch
+    deploy:
+      mode: global
+    hostname: "{{.Node.Hostname}}"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - elasticsearch
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+    configs:
+      - source: datasources
+        target: /etc/grafana/provisioning/datasources/grafana-datasources.yaml
+      - source: dashboards
+        target: /etc/grafana/provisioning/dashboards/dashboard.yaml
+      - source: metricbeat
+        target: /var/lib/grafana/dashboards/metricbeat.json
+
+  fluentd:
+    image: dockerbirmingham/fluentd
+    build: ./fluentd
+    ports: 
+      - 24224:24224
+    configs:
+      - source: fluentd.conf
+        target: /fluentd/etc/fluentd.conf
+    environment:
+      - FLUENTD_CONF=fluentd.conf
+    networks:
+      - elasticsearch
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+
+configs:
+  metricbeat.yml:
+    file: ./metricbeat/metricbeat.yml
+  fluentd.conf:
+    file: ./fluentd/fluentd.conf
+  datasources:
+    file: ./grafana/provisioning/datasources/grafana-datasources.yaml
+  dashboards:
+    file: ./grafana/provisioning/dashboards/dashboards.yaml
+  metricbeat:
+    file: ./grafana/provisioning/dashboards/dashboard.json
+
+networks:
+  elasticsearch:
+    driver: overlay
+    driver_opts:
+      encrypted: ""

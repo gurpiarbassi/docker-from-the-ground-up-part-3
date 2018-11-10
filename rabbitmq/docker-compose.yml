@@ -1,0 +1,116 @@
+version: "3.6"
+
+networks:
+  rabbit_heaven:
+  rabbit_hell:
+  dmz:
+
+configs:
+  haproxy.cfg:
+    file: ./haproxy/haproxy.cfg
+
+services:
+
+  python-client:
+    image: dockerbirmingham/python-rabbit-client
+    build: ./python-client
+    ports:
+      - 5000:5000
+    networks:
+      - dmz
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async-connect: "true"
+        tag: docker.python-client
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+  spring-client:
+    image: dockerbirmingham/spring-rabbit-client
+    build: ./spring-client
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_MAIN_BANNER_MODE=off
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
+    networks:
+      - dmz
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "localhost:24224"
+        fluentd-async-connect: "true"
+        tag: docker.spring-client
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+  rabbit:
+    image: haproxy:1.8.14-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
+      - 9099:9099
+    configs:
+      - source: haproxy.cfg
+        target: /etc/haproxy/haproxy.cfg
+    command: -f /etc/haproxy/haproxy.cfg
+    networks:
+      - rabbit_heaven
+      - dmz
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+  rabbit1:
+    image: dockerbirmingham/rabbitmq-cluster
+    build: ./rabbitmq
+    hostname: rabbit1
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=myxomatosis
+    volumes:
+      - rabbitmq1:/var/lib/rabbitmq
+    networks:
+      - rabbit_heaven
+      - rabbit_hell
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+  rabbit2:
+    image: dockerbirmingham/rabbitmq-cluster
+    build: ./rabbitmq
+    hostname: rabbit2
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=myxomatosis
+    volumes:
+      - rabbitmq2:/var/lib/rabbitmq
+    networks:
+      - rabbit_heaven
+      - rabbit_hell
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+  rabbit3:
+    image: dockerbirmingham/rabbitmq-cluster
+    build: ./rabbitmq
+    hostname: rabbit3
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=myxomatosis
+    volumes:
+      - rabbitmq3:/var/lib/rabbitmq
+    networks:
+      - rabbit_heaven
+      - rabbit_hell
+    deploy:
+      placement:
+        constraints: [node.role == worker]
+
+volumes:
+   rabbitmq1:
+   rabbitmq2:
+   rabbitmq3:
