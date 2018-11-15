@@ -7,7 +7,7 @@ to deploy an EFK stack and simple RabbitMQ cluster with some simple clients.
 
 ## Slides
 
-Can be found in Pdf for in this repo and in google slides [here] (https://docs.google.com/presentation/d/1VJ5cCW5VufOW4Mrc86y59KIs3letHvrNeFSg2mLRlFk/edit?usp=sharing)
+Can be found in Pdf for in this repo and in google slides [here](https://docs.google.com/presentation/d/1VJ5cCW5VufOW4Mrc86y59KIs3letHvrNeFSg2mLRlFk/edit?usp=sharing)
 
 There is a section at the end with some links to online tutorials which cover many aspects of the Docker technology ecosystem in an interactive way, many without having to install Docker locally.
 Here's the list for easy access ;)
