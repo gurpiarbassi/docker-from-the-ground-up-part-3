@@ -50,6 +50,7 @@ Vagrant.configure(2) do |config|
     manager.vm.network "private_network", ip: "192.168.50.100"
     manager.vm.provision "docker"
     manager.vm.provision "shell", inline: @initManager
+    manager.vm.provider("virtualbox") { |vb| vb.name = "dftgu-3-#{manager.vm.hostname}-#{Time.now.to_i}" }
   end
 
   (1..NUM_OF_WORKERS).each do |workerNumber|
@@ -58,6 +59,7 @@ Vagrant.configure(2) do |config|
       worker.vm.network "private_network", ip: "192.168.50.#{100+workerNumber}"
       worker.vm.provision "docker"
       worker.vm.provision "shell", inline: @initWorker
+      worker.vm.provider("virtualbox") { |vb| vb.name = "dftgu-3-#{worker.vm.hostname}-#{Time.now.to_i}" }
     end
   end
 end
