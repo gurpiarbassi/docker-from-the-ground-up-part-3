@@ -12,10 +12,10 @@ Can be found in Pdf for in this repo and in google slides [here] (https://docs.g
 There is a section at the end with some links to online tutorials which cover many aspects of the Docker technology ecosystem in an interactive way, many without having to install Docker locally.
 Here's the list for easy access ;)
 
-https://www.katacoda.com/courses/docker-orchestration
-https://container.training/swarm-selfpaced.yml.html
-https://training.play-with-docker.com/
-https://docs.docker.com/engine/swarm/
+* https://www.katacoda.com/courses/docker-orchestration
+* https://container.training/swarm-selfpaced.yml.html
+* https://training.play-with-docker.com/
+* https://docs.docker.com/engine/swarm/
 
 ### Getting Started
 * Install Vagrant, Virtualbox and Docker.
